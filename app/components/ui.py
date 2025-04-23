@@ -3,7 +3,7 @@ UI components for the AI Sentiment Scanner app.
 """
 import streamlit as st
 from core.settings import DEFAULT_URLS, REVIEW_COUNT_RANGE
-from core.utils import clear_cache
+from core.cache_manager import clear_cache
 
 def setup_sidebar():
     """Setup the sidebar configuration."""
