@@ -26,6 +26,16 @@ def setup_sidebar():
         step=REVIEW_COUNT_RANGE["step"]
     )
     
+    # Add cache clearing button
+    st.sidebar.markdown("---")
+    if st.sidebar.button("🗑️ Clear Cache", help="Remove all cached review data"):
+        from core.utils import clear_cache
+        try:
+            clear_cache()
+            st.sidebar.success("Cache cleared successfully!")
+        except Exception as e:
+            st.sidebar.error(f"Error clearing cache: {str(e)}")
+    
     return url1, url2, review_count
 
 def display_metric_card(title, value, help_text):
