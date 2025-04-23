@@ -34,11 +34,11 @@ DEFAULT_URLS = {
 
 # Competitive analysis prompt template
 COMPETITIVE_ANALYSIS_PROMPT = """Compare {app1} and {app2} based on their user reviews. 
-Focus on:
-1. Key differences in user satisfaction and sentiment
-2. Feature comparisons and unique strengths
-3. Common pain points and areas for improvement
-4. Competitive advantages of each app
-5. User engagement and review patterns
 
-Format the response in clear sections with bullet points for easy reading.""" 
+Focus on key differences in:
+- User satisfaction
+- Key features
+- Main pain points
+- Competitive advantages
+
+Keep each point brief and impactful. Use bullet points.""" 

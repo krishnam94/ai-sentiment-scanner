@@ -57,73 +57,116 @@ def create_score_cards(metrics1, metrics2, labels):
             st.markdown(f"<div class='score-label'>App 1 vs App 2</div>", unsafe_allow_html=True)
 
 def display_competitive_metrics(df1, df2):
-    """Display competitive metrics and visualizations."""
-    # Calculate metrics for both apps
+    """Display competitive metrics and visualizations focusing on key differentiators."""
+    # Calculate key metrics for both apps
     metrics1 = {
         "Sentiment": df1['sentiment'].mean(),
         "Engagement": df1['engagement'].mean(),
-        "Review Count": len(df1),
-        "Positive Reviews": (df1['sentiment'] > 0).mean(),
-        "Response Rate": df1['response'].notna().mean() if 'response' in df1.columns else 0
+        "Reviews": len(df1),
+        "Satisfaction": (df1['sentiment'] > 0).mean(),
     }
     
     metrics2 = {
         "Sentiment": df2['sentiment'].mean(),
         "Engagement": df2['engagement'].mean(),
-        "Review Count": len(df2),
-        "Positive Reviews": (df2['sentiment'] > 0).mean(),
-        "Response Rate": df2['response'].notna().mean() if 'response' in df2.columns else 0
+        "Reviews": len(df2),
+        "Satisfaction": (df2['sentiment'] > 0).mean(),
     }
     
-    # Normalize metrics for radar chart
-    max_values = {
-        "Sentiment": 1.0,
-        "Engagement": max(metrics1["Engagement"], metrics2["Engagement"]),
-        "Review Count": max(metrics1["Review Count"], metrics2["Review Count"]),
-        "Positive Reviews": 1.0,
-        "Response Rate": 1.0
+    # Calculate differences and identify key differentiators
+    differences = {
+        k: abs(metrics1[k] - metrics2[k]) for k in metrics1.keys()
     }
+    significant_diffs = {k: v for k, v in differences.items() if v > 0.1}  # Threshold for significant difference
     
-    normalized_metrics1 = [metrics1[k] / max_values[k] for k in metrics1.keys()]
-    normalized_metrics2 = [metrics2[k] / max_values[k] for k in metrics2.keys()]
+    # Display key differentiators
+    st.markdown("### Key Differences")
+    for metric in significant_diffs:
+        value1 = metrics1[metric]
+        value2 = metrics2[metric]
+        diff = value1 - value2
+        
+        # Format the values based on metric type
+        if metric in ["Sentiment", "Satisfaction"]:
+            value1_str = f"{value1:.2f}"
+            value2_str = f"{value2:.2f}"
+            diff_str = f"{diff:+.2f}"
+        elif metric == "Engagement":
+            value1_str = f"{value1:.1f}"
+            value2_str = f"{value2:.1f}"
+            diff_str = f"{diff:+.1f}"
+        else:  # Reviews
+            value1_str = f"{value1:,}"
+            value2_str = f"{value2:,}"
+            diff_str = f"{diff:+,}"
+        
+        # Determine which app is leading
+        leader = "App 1" if diff > 0 else "App 2"
+        diff_percent = abs(diff / ((value1 + value2) / 2)) * 100
+        
+        st.markdown(f"""
+        <div class="differentiator-card">
+            <div class="metric-name">{metric}</div>
+            <div class="metric-values">
+                <span class="app1-value">{value1_str}</span>
+                <span class="vs">vs</span>
+                <span class="app2-value">{value2_str}</span>
+            </div>
+            <div class="metric-diff">
+                <span class="diff-value">{diff_str}</span>
+                <span class="leader">({leader} +{diff_percent:.0f}%)</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    # Create and display radar chart
-    st.plotly_chart(
-        create_radar_chart(
-            normalized_metrics1,
-            normalized_metrics2,
-            list(metrics1.keys())
-        ),
-        use_container_width=True
-    )
-    
-    # Display score cards
-    st.markdown("### Detailed Metrics Comparison")
-    create_score_cards(
-        list(metrics1.values()),
-        list(metrics2.values()),
-        list(metrics1.keys())
-    )
-    
-    # Add CSS for score cards
+    # Add CSS for differentiator cards
     st.markdown("""
     <style>
-    .score-card {
+    .differentiator-card {
         background-color: #f0f2f6;
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 0.5rem 0;
-        text-align: center;
     }
-    .score-value {
-        font-size: 1.5rem;
+    .metric-name {
         font-weight: bold;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+    .metric-values {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin: 0.5rem 0;
     }
-    .score-label {
-        font-size: 0.8rem;
+    .app1-value {
+        color: #1f77b4;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    .app2-value {
+        color: #ff7f0e;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    .vs {
         color: #666;
+        font-size: 0.9rem;
+    }
+    .metric-diff {
         text-align: center;
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+    .diff-value {
+        font-weight: bold;
+        color: #333;
+    }
+    .leader {
+        margin-left: 0.5rem;
+        color: #333;
     }
     </style>
     """, unsafe_allow_html=True) 

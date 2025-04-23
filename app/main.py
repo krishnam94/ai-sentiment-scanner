@@ -205,7 +205,7 @@ if st.sidebar.button("Compare Apps"):
         )
     
     # Display competitive metrics in a compact format
-    with st.expander("Detailed Comparison", expanded=False):
+    with st.expander("Detailed Comparison", expanded=True):
         display_competitive_metrics(df1, df2)
         
         # Generate and display competitive summary
