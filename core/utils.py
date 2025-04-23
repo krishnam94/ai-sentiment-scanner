@@ -161,29 +161,22 @@ def store_snapshot(app_name: str, reviews: List[Dict], requested_count: int = No
     except Exception as e:
         logger.error(f"Error storing snapshot for {app_name}: {str(e)}", exc_info=True)
 
-def load_snapshot(app_name: str, requested_count: int) -> List[Dict]:
+def load_snapshot(app_name: str, requested_count: int = None) -> List[Dict]:
     """
     Load a snapshot of reviews for an app.
     
     Args:
         app_name: Name or ID of the app
-        requested_count: Number of reviews requested
+        requested_count: Number of reviews requested (optional)
         
     Returns:
         List[Dict]: List of review dictionaries or None if no snapshot exists
     """
     try:
-        # Ensure the snapshots directory exists
-        snapshots_dir = "data/snapshots"
-        os.makedirs(snapshots_dir, exist_ok=True)
-        
         date = datetime.now().strftime("%Y-%m-%d")
         # Use the app_name directly as the safe_app since it's already a safe identifier
         safe_app = app_name
-        path = os.path.join(snapshots_dir, f"{safe_app}_{date}.json")
-        
-        logger.info(f"Attempting to load snapshot from: {path}")
-        
+        path = f"data/snapshots/{safe_app}_{date}.json"
         if os.path.exists(path):
             with open(path, 'r') as f:
                 data = json.load(f)
@@ -193,12 +186,12 @@ def load_snapshot(app_name: str, requested_count: int) -> List[Dict]:
                     logger.info(f"Loaded {cached_count} reviews for {app_name}")
                     
                     # If requested count is provided and cached reviews are fewer, return None to trigger a new fetch
-                    if cached_count < requested_count:
+                    if requested_count is not None and cached_count < requested_count:
                         logger.info(f"Cached reviews ({cached_count}) fewer than requested ({requested_count}), will fetch new reviews")
                         return None
                         
                     return cached_reviews
-        logger.info(f"No snapshot found for {app_name} at path: {path}")
+        logger.info(f"No snapshot found for {app_name}")
         return None
     except Exception as e:
         logger.error(f"Error loading snapshot for {app_name}: {str(e)}", exc_info=True)
