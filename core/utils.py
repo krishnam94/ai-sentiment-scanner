@@ -118,18 +118,19 @@ def cached_summary(texts: List[str], summarizer_func: Callable, app_name: str = 
         logger.error(f"Error in cached_summary: {str(e)}")
         raise
 
-def store_snapshot(app_name: str, reviews: List[Dict], requested_count: int = None) -> None:
+def store_snapshot(app_name: str, reviews: List[Dict], requested_count: int) -> None:
     """
     Store a snapshot of reviews for an app.
     
     Args:
         app_name: Name of the app
         reviews: List of review dictionaries
-        requested_count: Number of reviews that were requested (optional)
+        requested_count: Number of reviews that were requested
     """
     try:
         date = datetime.now().strftime("%Y-%m-%d")
-        safe_app = app_name.lower().replace(" ", "_").replace("(", "").replace(")", "").replace(".", "")
+        # Use the app_name directly as the safe_app since it's already a safe identifier
+        safe_app = app_name
         path = f"data/snapshots/{safe_app}_{date}.json"
         os.makedirs(os.path.dirname(path), exist_ok=True)
         
@@ -144,7 +145,7 @@ def store_snapshot(app_name: str, reviews: List[Dict], requested_count: int = No
                         logger.info(f"Keeping existing snapshot with {len(existing_reviews)} reviews")
                         return
                     # If we have fewer reviews but more than requested, keep the existing ones
-                    if requested_count is not None and len(existing_reviews) >= requested_count:
+                    if len(existing_reviews) >= requested_count:
                         logger.info(f"Keeping existing snapshot with {len(existing_reviews)} reviews (meets requested count)")
                         return
         
