@@ -161,13 +161,12 @@ def store_snapshot(app_name: str, reviews: List[Dict], requested_count: int = No
     except Exception as e:
         logger.error(f"Error storing snapshot for {app_name}: {str(e)}", exc_info=True)
 
-def load_snapshot(app_name: str, requested_count: int = None) -> List[Dict]:
+def load_snapshot(app_name: str) -> List[Dict]:
     """
     Load a snapshot of reviews for an app.
     
     Args:
         app_name: Name or ID of the app
-        requested_count: Number of reviews requested (optional)
         
     Returns:
         List[Dict]: List of review dictionaries or None if no snapshot exists
@@ -184,12 +183,6 @@ def load_snapshot(app_name: str, requested_count: int = None) -> List[Dict]:
                     cached_reviews = data["reviews"]
                     cached_count = len(cached_reviews)
                     logger.info(f"Loaded {cached_count} reviews for {app_name}")
-                    
-                    # If requested count is provided and cached reviews are fewer, return None to trigger a new fetch
-                    if requested_count is not None and cached_count < requested_count:
-                        logger.info(f"Cached reviews ({cached_count}) fewer than requested ({requested_count}), will fetch new reviews")
-                        return None
-                        
                     return cached_reviews
         logger.info(f"No snapshot found for {app_name}")
         return None
