@@ -134,7 +134,7 @@ if st.sidebar.button("Compare Apps"):
         # Fetch or load reviews for second app
         print(f"\nProcessing {app_id2}...")
         logger.info(f"Starting process for {app_id2}")
-        reviews2 = load_snapshot(app_id2, review_count)
+        reviews2 = load_snapshot(app_id2)
         if not reviews2:
             print(f"Fetching fresh reviews for {app_id2}")
             logger.info(f"Fetching fresh reviews for {app_id2}")
