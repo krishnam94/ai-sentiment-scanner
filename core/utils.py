@@ -173,10 +173,17 @@ def load_snapshot(app_name: str, requested_count: int) -> List[Dict]:
         List[Dict]: List of review dictionaries or None if no snapshot exists
     """
     try:
+        # Ensure the snapshots directory exists
+        snapshots_dir = "data/snapshots"
+        os.makedirs(snapshots_dir, exist_ok=True)
+        
         date = datetime.now().strftime("%Y-%m-%d")
         # Use the app_name directly as the safe_app since it's already a safe identifier
         safe_app = app_name
-        path = f"data/snapshots/{safe_app}_{date}.json"
+        path = os.path.join(snapshots_dir, f"{safe_app}_{date}.json")
+        
+        logger.info(f"Attempting to load snapshot from: {path}")
+        
         if os.path.exists(path):
             with open(path, 'r') as f:
                 data = json.load(f)
@@ -191,7 +198,7 @@ def load_snapshot(app_name: str, requested_count: int) -> List[Dict]:
                         return None
                         
                     return cached_reviews
-        logger.info(f"No snapshot found for {app_name}")
+        logger.info(f"No snapshot found for {app_name} at path: {path}")
         return None
     except Exception as e:
         logger.error(f"Error loading snapshot for {app_name}: {str(e)}", exc_info=True)
