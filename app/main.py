@@ -21,6 +21,7 @@ from components.analysis import (
 from components.competitive_viz import display_competitive_metrics
 import pandas as pd
 import logging
+from google_play_scraper import app
 
 # Clear any existing handlers
 logging.getLogger().handlers = []
