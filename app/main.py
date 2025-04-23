@@ -121,7 +121,8 @@ if st.sidebar.button("Compare Apps"):
                 if reviews1:
                     print(f"Successfully fetched {len(reviews1)} reviews for {app_id1}")
                     logger.info(f"Successfully fetched {len(reviews1)} reviews for {app_id1}")
-                    store_snapshot(app_id1, reviews1, review_count)
+                    app_info1 = app(app_id1)
+                    store_snapshot(app_info1['title'], reviews1, review_count)
                 else:
                     st.error(f"Could not fetch reviews for {app_id1}. Please try again later.")
                     logger.error(f"No reviews returned for {app_id1}")
@@ -143,7 +144,8 @@ if st.sidebar.button("Compare Apps"):
                 if reviews2:
                     print(f"Successfully fetched {len(reviews2)} reviews for {app_id2}")
                     logger.info(f"Successfully fetched {len(reviews2)} reviews for {app_id2}")
-                    store_snapshot(app_id2, reviews2, review_count)
+                    app_info2 = app(app_id2)
+                    store_snapshot(app_info2['title'], reviews2, review_count)
                 else:
                     st.error(f"Could not fetch reviews for {app_id2}. Please try again later.")
                     logger.error(f"No reviews returned for {app_id2}")
