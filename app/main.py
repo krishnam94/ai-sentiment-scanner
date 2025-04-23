@@ -186,41 +186,55 @@ if st.sidebar.button("Compare Apps"):
     # Calculate and display key metrics
     metrics = calculate_comparison_metrics(df1, df2)
     
-    # Display key metrics in a more concise format
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        display_metric_card(
-            "Sentiment",
-            f"{metrics['sentiment_diff']:+.2f}",
-            "Higher is better"
-        )
-    with col2:
-        display_metric_card(
-            "Reviews",
-            f"{metrics['review_count_diff']:+d}",
-            "More reviews"
-        )
-    with col3:
-        display_metric_card(
-            "Engagement",
-            f"{metrics['engagement_diff']:+.1f}",
-            "Higher engagement"
-        )
-    
-    # Display competitive metrics in a compact format
-    with st.expander("Detailed Comparison", expanded=True):
-        display_competitive_metrics(df1, df2)
-        
-        # Generate and display competitive summary
-        try:
-            competitive_summary = generate_competitive_summary(
-                df1, df2, app_id1, app_id2, review_count,
-                f"App ID: {app_id1}", f"App ID: {app_id2}"
+    # Create a container for all competitive analysis metrics
+    with st.container():
+        # Main competitive metrics in a single row
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            display_metric_card(
+                "Overall Sentiment",
+                f"{metrics['sentiment_diff']:+.2f}",
+                "Higher is better",
+                icon="😊"
             )
-            display_summary_box("Key Competitive Insights", competitive_summary)
-        except Exception as e:
-            logger.error(f"Error generating competitive summary: {str(e)}", exc_info=True)
-            st.error(f"Error generating competitive summary: {str(e)}")
+        with col2:
+            display_metric_card(
+                "Review Volume",
+                f"{metrics['review_count_diff']:+d}",
+                "More reviews",
+                icon="📊"
+            )
+        with col3:
+            display_metric_card(
+                "User Engagement",
+                f"{metrics['engagement_diff']:+.1f}",
+                "Higher engagement",
+                icon="👍"
+            )
+        with col4:
+            display_metric_card(
+                "Response Rate",
+                f"{metrics['response_rate_diff']:+.1f}%",
+                "Better support",
+                icon="💬"
+            )
+        
+        # Detailed comparison in an expander
+        with st.expander("Detailed Analysis", expanded=True):
+            # Display competitive metrics visualization
+            display_competitive_metrics(df1, df2)
+            
+            # Generate and display competitive summary
+            try:
+                competitive_summary = generate_competitive_summary(
+                    df1, df2, app_id1, app_id2, review_count,
+                    f"App ID: {app_id1}", f"App ID: {app_id2}"
+                )
+                st.markdown("### Key Insights")
+                display_summary_box("", competitive_summary)
+            except Exception as e:
+                logger.error(f"Error generating competitive summary: {str(e)}", exc_info=True)
+                st.error(f"Error generating competitive summary: {str(e)}")
 
     # Individual App Summaries
     display_section_header("AI-Powered Review Analysis", "🧠")
