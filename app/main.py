@@ -189,7 +189,7 @@ if st.sidebar.button("Compare Apps"):
     # Create a container for all competitive analysis metrics
     with st.container():
         # Main competitive metrics in a single row
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3 = st.columns(3)
         with col1:
             display_metric_card(
                 "Overall Sentiment",
@@ -207,12 +207,6 @@ if st.sidebar.button("Compare Apps"):
                 "User Engagement",
                 f"{metrics['engagement_diff']:+.1f}",
                 "Higher engagement"
-            )
-        with col4:
-            display_metric_card(
-                "Response Rate",
-                f"{metrics['response_rate_diff']:+.1f}%",
-                "Better support"
             )
         
         # Detailed comparison in an expander
