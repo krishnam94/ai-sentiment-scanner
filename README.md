@@ -1,6 +1,6 @@
 # 📱 AI Sentiment Scanner
 
-**AI Sentiment Scanner** is a Streamlit-based tool for analyzing and comparing customer sentiment from **Google Play Store reviews** of telecom apps in Singapore. It helps track public perception, identify pain points, and monitor how user sentiment evolves over time.
+**AI Sentiment Scanner** is a Streamlit-based tool for analyzing and comparing customer sentiment from **Google Play Store reviews**. It helps track public perception, identify pain points, and monitor how user sentiment evolves over time.
 
 ---
 
@@ -67,7 +67,7 @@ streamlit run app/main.py
 ## 🧠 Ideal Use Cases
 
 - Product teams tracking app feedback trends
-- Competitive benchmarking (e.g., Singtel vs StarHub)
+- Competitive benchmarking
 - Sentiment-driven UX research
 
 ---
