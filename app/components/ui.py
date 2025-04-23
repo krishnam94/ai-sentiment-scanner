@@ -3,6 +3,7 @@ UI components for the AI Sentiment Scanner app.
 """
 import streamlit as st
 from core.settings import DEFAULT_URLS, REVIEW_COUNT_RANGE
+from core.utils import clear_cache
 
 def setup_sidebar():
     """Setup the sidebar configuration."""
@@ -29,7 +30,6 @@ def setup_sidebar():
     # Add cache clearing button
     st.sidebar.markdown("---")
     if st.sidebar.button("🗑️ Clear Cache", help="Remove all cached review data"):
-        from core.utils import clear_cache
         try:
             clear_cache()
             st.sidebar.success("Cache cleared successfully!")
