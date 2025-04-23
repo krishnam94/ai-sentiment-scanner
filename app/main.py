@@ -183,32 +183,8 @@ if st.sidebar.button("Compare Apps"):
     # Competitive Analysis Summary
     display_section_header("Competitive Analysis Summary", "🏆")
     
-    # Calculate and display key metrics
-    metrics = calculate_comparison_metrics(df1, df2)
-    
     # Create a container for all competitive analysis metrics
     with st.container():
-        # Main competitive metrics in a single row
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            display_metric_card(
-                "Overall Sentiment",
-                f"{metrics['sentiment_diff']:+.2f}",
-                "Higher is better"
-            )
-        with col2:
-            display_metric_card(
-                "Review Volume",
-                f"{metrics['review_count_diff']:+d}",
-                "More reviews"
-            )
-        with col3:
-            display_metric_card(
-                "User Engagement",
-                f"{metrics['engagement_diff']:+.1f}",
-                "Higher engagement"
-            )
-        
         # Detailed comparison in an expander
         with st.expander("Detailed Analysis", expanded=True):
             # Display competitive metrics visualization
