@@ -87,7 +87,7 @@ st.title("📱 AI Sentiment Scanner: App Review Analysis")
 st.markdown("""
 This tool analyzes and compares Google Play Store reviews for different apps.
 Select two apps below to compare their reviews, sentiment trends, and get AI-powered summaries.
-""")
+""", unsafe_allow_html=True)
 
 # Setup sidebar and get inputs
 url1, url2, review_count = setup_sidebar()
@@ -112,7 +112,7 @@ if st.sidebar.button("Compare Apps"):
         # Fetch or load reviews for first app
         print(f"\nProcessing {app_id1}...")
         logger.info(f"Starting process for {app_id1}")
-        reviews1 = load_snapshot(app_id1)
+        reviews1 = load_snapshot(app_id1, review_count)
         if not reviews1:
             print(f"Fetching fresh reviews for {app_id1}")
             logger.info(f"Fetching fresh reviews for {app_id1}")
@@ -121,7 +121,7 @@ if st.sidebar.button("Compare Apps"):
                 if reviews1:
                     print(f"Successfully fetched {len(reviews1)} reviews for {app_id1}")
                     logger.info(f"Successfully fetched {len(reviews1)} reviews for {app_id1}")
-                    store_snapshot(app_id1, reviews1)
+                    store_snapshot(app_id1, reviews1, review_count)
                 else:
                     st.error(f"Could not fetch reviews for {app_id1}. Please try again later.")
                     logger.error(f"No reviews returned for {app_id1}")
@@ -134,7 +134,7 @@ if st.sidebar.button("Compare Apps"):
         # Fetch or load reviews for second app
         print(f"\nProcessing {app_id2}...")
         logger.info(f"Starting process for {app_id2}")
-        reviews2 = load_snapshot(app_id2)
+        reviews2 = load_snapshot(app_id2, review_count)
         if not reviews2:
             print(f"Fetching fresh reviews for {app_id2}")
             logger.info(f"Fetching fresh reviews for {app_id2}")
@@ -143,7 +143,7 @@ if st.sidebar.button("Compare Apps"):
                 if reviews2:
                     print(f"Successfully fetched {len(reviews2)} reviews for {app_id2}")
                     logger.info(f"Successfully fetched {len(reviews2)} reviews for {app_id2}")
-                    store_snapshot(app_id2, reviews2)
+                    store_snapshot(app_id2, reviews2, review_count)
                 else:
                     st.error(f"Could not fetch reviews for {app_id2}. Please try again later.")
                     logger.error(f"No reviews returned for {app_id2}")
@@ -170,7 +170,7 @@ if st.sidebar.button("Compare Apps"):
     st.success("Analysis complete!")
 
     # Display logs
-    with st.expander("Debug Information", expanded=True):
+    with st.expander("Debug Information", expanded=False):
         st.text(log_stream.getvalue())
 
     # Create sentiment DataFrames
@@ -179,45 +179,45 @@ if st.sidebar.button("Compare Apps"):
 
     # Competitive Analysis Summary
     display_section_header("Competitive Analysis Summary", "🏆")
-    st.markdown("""
-    This section provides a high-level comparison of both apps based on their recent reviews.
-    """)
     
-    # Display competitive metrics and visualizations
-    display_competitive_metrics(df1, df2)
-    
-    # Calculate and display comparison metrics
+    # Calculate and display key metrics
     metrics = calculate_comparison_metrics(df1, df2)
+    
+    # Display key metrics in a more concise format
     col1, col2, col3 = st.columns(3)
     with col1:
         display_metric_card(
-            "Overall Sentiment Difference",
-            f"{metrics['sentiment_diff']:.2f}",
-            "Positive means second app has better sentiment"
+            "Sentiment",
+            f"{metrics['sentiment_diff']:+.2f}",
+            "Higher is better"
         )
     with col2:
         display_metric_card(
-            "Review Count Difference",
-            f"{metrics['review_count_diff']}",
-            "Positive means second app has more reviews"
+            "Reviews",
+            f"{metrics['review_count_diff']:+d}",
+            "More reviews"
         )
     with col3:
         display_metric_card(
-            "Engagement Difference",
-            f"{metrics['engagement_diff']:.1f}",
-            "Positive means second app has higher engagement"
+            "Engagement",
+            f"{metrics['engagement_diff']:+.1f}",
+            "Higher engagement"
         )
     
-    # Generate and display competitive summary
-    try:
-        competitive_summary = generate_competitive_summary(
-            df1, df2, app_id1, app_id2, review_count,
-            f"App ID: {app_id1}", f"App ID: {app_id2}"
-        )
-        display_summary_box("Key Competitive Insights", competitive_summary)
-    except Exception as e:
-        logger.error(f"Error generating competitive summary: {str(e)}", exc_info=True)
-        st.error(f"Error generating competitive summary: {str(e)}")
+    # Display competitive metrics in a compact format
+    with st.expander("Detailed Comparison", expanded=False):
+        display_competitive_metrics(df1, df2)
+        
+        # Generate and display competitive summary
+        try:
+            competitive_summary = generate_competitive_summary(
+                df1, df2, app_id1, app_id2, review_count,
+                f"App ID: {app_id1}", f"App ID: {app_id2}"
+            )
+            display_summary_box("Key Competitive Insights", competitive_summary)
+        except Exception as e:
+            logger.error(f"Error generating competitive summary: {str(e)}", exc_info=True)
+            st.error(f"Error generating competitive summary: {str(e)}")
 
     # Individual App Summaries
     display_section_header("AI-Powered Review Analysis", "🧠")

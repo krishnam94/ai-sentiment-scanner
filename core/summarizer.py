@@ -9,7 +9,11 @@ logger = logging.getLogger()
 
 # Initialize OpenAI client
 try:
-    client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    client = openai.OpenAI(
+        api_key=OPENAI_API_KEY,
+        timeout=30.0,  # Add timeout
+        max_retries=3  # Add retries
+    )
     logger.info("OpenAI client initialized successfully")
 except Exception as e:
     logger.error(f"Failed to initialize OpenAI client: {str(e)}")
