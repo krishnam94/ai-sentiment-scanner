@@ -194,29 +194,25 @@ if st.sidebar.button("Compare Apps"):
             display_metric_card(
                 "Overall Sentiment",
                 f"{metrics['sentiment_diff']:+.2f}",
-                "Higher is better",
-                icon="😊"
+                "Higher is better"
             )
         with col2:
             display_metric_card(
                 "Review Volume",
                 f"{metrics['review_count_diff']:+d}",
-                "More reviews",
-                icon="📊"
+                "More reviews"
             )
         with col3:
             display_metric_card(
                 "User Engagement",
                 f"{metrics['engagement_diff']:+.1f}",
-                "Higher engagement",
-                icon="👍"
+                "Higher engagement"
             )
         with col4:
             display_metric_card(
                 "Response Rate",
                 f"{metrics['response_rate_diff']:+.1f}%",
-                "Better support",
-                icon="💬"
+                "Better support"
             )
         
         # Detailed comparison in an expander
