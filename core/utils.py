@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, Callable
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 import hashlib
 import os
@@ -45,7 +45,11 @@ def cache_key(texts: List[str], app_name: str = None) -> str:
     try:
         # Create a unique identifier using both app name and content
         identifier = f"{app_name}_{''.join(texts)}" if app_name else "".join(texts)
-        return os.path.join("data/summaries", hashlib.md5(identifier.encode()).hexdigest() + ".json")
+        cache_path = os.path.join("data/summaries", hashlib.md5(identifier.encode()).hexdigest() + ".json")
+        
+        # Ensure cache directory exists
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        return cache_path
     except Exception as e:
         logger.error(f"Error generating cache key: {str(e)}")
         return None
@@ -132,7 +136,13 @@ def store_snapshot(app_name: str, reviews: List[Dict], requested_count: int) -> 
         # Use the app_name directly as the safe_app since it's already a safe identifier
         safe_app = app_name
         path = f"data/snapshots/{safe_app}_{date}.json"
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        
+        # Ensure snapshots directory exists
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+        except Exception as e:
+            logger.error(f"Error creating snapshots directory: {str(e)}")
+            raise
         
         # Check if we already have a snapshot
         if os.path.exists(path):
@@ -150,17 +160,22 @@ def store_snapshot(app_name: str, reviews: List[Dict], requested_count: int) -> 
                         return
         
         # Store the new snapshot
-        with open(path, 'w') as f:
-            json.dump({
-                "app_name": app_name,
-                "reviews": reviews,
-                "review_count": len(reviews),
-                "timestamp": datetime.now().isoformat(),
-                "requested_count": requested_count
-            }, f, default=str)
-        logger.info(f"Successfully stored snapshot for {app_name} with {len(reviews)} reviews")
+        try:
+            with open(path, 'w') as f:
+                json.dump({
+                    "app_name": app_name,
+                    "reviews": reviews,
+                    "review_count": len(reviews),
+                    "timestamp": datetime.now().isoformat(),
+                    "requested_count": requested_count
+                }, f, default=str)
+            logger.info(f"Successfully stored snapshot for {app_name} with {len(reviews)} reviews")
+        except Exception as e:
+            logger.error(f"Error writing snapshot file: {str(e)}")
+            raise
     except Exception as e:
         logger.error(f"Error storing snapshot for {app_name}: {str(e)}", exc_info=True)
+        raise
 
 def load_snapshot(app_name: str) -> List[Dict]:
     """
@@ -177,14 +192,23 @@ def load_snapshot(app_name: str) -> List[Dict]:
         # Use the app_name directly as the safe_app since it's already a safe identifier
         safe_app = app_name
         path = f"data/snapshots/{safe_app}_{date}.json"
+        
         if os.path.exists(path):
-            with open(path, 'r') as f:
-                data = json.load(f)
-                if "reviews" in data:
-                    cached_reviews = data["reviews"]
-                    cached_count = len(cached_reviews)
-                    logger.info(f"Loaded {cached_count} reviews for {app_name}")
-                    return cached_reviews
+            try:
+                with open(path, 'r') as f:
+                    data = json.load(f)
+                    if "reviews" in data:
+                        cached_reviews = data["reviews"]
+                        cached_count = len(cached_reviews)
+                        logger.info(f"Loaded {cached_count} reviews for {app_name}")
+                        return cached_reviews
+            except json.JSONDecodeError as e:
+                logger.error(f"Error decoding snapshot JSON for {app_name}: {str(e)}")
+                return None
+            except Exception as e:
+                logger.error(f"Error reading snapshot file for {app_name}: {str(e)}")
+                return None
+                
         logger.info(f"No snapshot found for {app_name}")
         return None
     except Exception as e:
@@ -239,4 +263,121 @@ def get_top_keywords(texts: List[str], n: int = 10) -> List[str]:
         return [word for word, _ in word_counts.most_common(n)]
     except Exception as e:
         logger.error(f"Error getting top keywords: {str(e)}", exc_info=True)
-        return [] 
+        return []
+
+def clear_cache() -> None:
+    """
+    Clear all cached summary files.
+    """
+    try:
+        if os.path.exists(CACHE_DIR):
+            for filename in os.listdir(CACHE_DIR):
+                if filename.endswith('.json'):
+                    file_path = os.path.join(CACHE_DIR, filename)
+                    os.remove(file_path)
+                    logger.info(f"Removed cache file: {filename}")
+            logger.info("Cache cleared successfully")
+    except Exception as e:
+        logger.error(f"Error clearing cache: {str(e)}", exc_info=True)
+        raise
+
+def clear_snapshots(days_to_keep: int = 7) -> None:
+    """
+    Clear old snapshot files, keeping only those from the last N days.
+    
+    Args:
+        days_to_keep: Number of days of snapshots to keep (default: 7)
+    """
+    try:
+        if not os.path.exists(SNAPSHOT_DIR):
+            return
+            
+        cutoff_date = datetime.now() - timedelta(days=days_to_keep)
+        cutoff_str = cutoff_date.strftime("%Y-%m-%d")
+        
+        for filename in os.listdir(SNAPSHOT_DIR):
+            if not filename.endswith('.json'):
+                continue
+                
+            # Extract date from filename (format: appname_YYYY-MM-DD.json)
+            try:
+                date_str = filename.split('_')[-1].replace('.json', '')
+                file_date = datetime.strptime(date_str, "%Y-%m-%d")
+                
+                if file_date < cutoff_date:
+                    file_path = os.path.join(SNAPSHOT_DIR, filename)
+                    os.remove(file_path)
+                    logger.info(f"Removed old snapshot: {filename}")
+            except (ValueError, IndexError) as e:
+                logger.warning(f"Could not parse date from filename {filename}: {str(e)}")
+                continue
+                
+        logger.info(f"Successfully cleaned up snapshots older than {days_to_keep} days")
+    except Exception as e:
+        logger.error(f"Error clearing old snapshots: {str(e)}", exc_info=True)
+        raise
+
+def get_snapshot_info() -> Dict[str, Any]:
+    """
+    Get information about stored snapshots.
+    
+    Returns:
+        Dict containing snapshot statistics
+    """
+    try:
+        if not os.path.exists(SNAPSHOT_DIR):
+            return {
+                "total_snapshots": 0,
+                "total_size": 0,
+                "apps": {}
+            }
+            
+        total_size = 0
+        apps = {}
+        
+        for filename in os.listdir(SNAPSHOT_DIR):
+            if not filename.endswith('.json'):
+                continue
+                
+            file_path = os.path.join(SNAPSHOT_DIR, filename)
+            file_size = os.path.getsize(file_path)
+            total_size += file_size
+            
+            # Extract app name and date
+            try:
+                app_name = '_'.join(filename.split('_')[:-1])
+                date_str = filename.split('_')[-1].replace('.json', '')
+                
+                if app_name not in apps:
+                    apps[app_name] = {
+                        "snapshots": 0,
+                        "total_size": 0,
+                        "latest_date": None
+                    }
+                    
+                apps[app_name]["snapshots"] += 1
+                apps[app_name]["total_size"] += file_size
+                
+                # Update latest date if this snapshot is newer
+                snapshot_date = datetime.strptime(date_str, "%Y-%m-%d")
+                if (apps[app_name]["latest_date"] is None or 
+                    snapshot_date > apps[app_name]["latest_date"]):
+                    apps[app_name]["latest_date"] = snapshot_date
+                    
+            except (ValueError, IndexError) as e:
+                logger.warning(f"Could not parse filename {filename}: {str(e)}")
+                continue
+                
+        return {
+            "total_snapshots": len([f for f in os.listdir(SNAPSHOT_DIR) if f.endswith('.json')]),
+            "total_size": total_size,
+            "apps": apps
+        }
+    except Exception as e:
+        logger.error(f"Error getting snapshot info: {str(e)}", exc_info=True)
+        return {
+            "total_snapshots": 0,
+            "total_size": 0,
+            "apps": {},
+            "error": str(e)
+        } 
